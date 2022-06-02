@@ -3,6 +3,7 @@
 #include <iostream>
 #include <ctime>
 #include <conio.h>
+#include "printPuzzle.h"
 
 static int g_nScreenIndex;
 static HANDLE g_hScreen[2];
@@ -57,7 +58,7 @@ void ScreenPrint(int x, int y, char* string)
 	DWORD dw;
 	COORD CursorPosition = { (SHORT)x, (SHORT)y };
 	SetConsoleCursorPosition(g_hScreen[g_nScreenIndex], CursorPosition);
-	WriteFile(g_hScreen[g_nScreenIndex], string, strlen(string), &dw, NULL);
+	WriteFile(g_hScreen[g_nScreenIndex], string, static_cast<DWORD>(strlen(string)), &dw, NULL);
 }
 
 
@@ -82,24 +83,6 @@ clock_t UpdateCurTime;
 clock_t UpdateOldTime;
 char GameText[256 * 256];
 
-const int PUZZLE_WIDTH = 9;
-const int PUZZLE_HEIGHT = 9;
-class puzzleData
-{
-	puzzleData()
-	{
-		for (int x = 0; x < PUZZLE_WIDTH; ++x)
-		{
-			for (int y = 0; y < PUZZLE_HEIGHT; ++y)
-			{
-				//■
-				tile[x][y] = '□';
-			}
-		}
-	}
-	char tile[PUZZLE_WIDTH][PUZZLE_HEIGHT];
-};
-
 void Render(double StartTime)
 {
 	ScreenClear();
@@ -112,6 +95,7 @@ void Render(double StartTime)
 		memset(GameText, 0, 256 * 256);  //memset 함수: 메모리의 내용값을 원하는 특정값으로 세팅할 수 있음. 메모리를 초기화 해줌.
 		char tempString[256] = { 0, };
 		sprintf(GameText, "게임정보\n");
+		PrintPuzzle a;
 
 		OldTime = CurTime; //일반적으로 FPS가 60 아래로 나오면 게임 플레이가 원활하지 못함. 적절히 조절
 		g_numofFPS = 0;
@@ -135,7 +119,7 @@ int main()
 {
 	// 현재시간- 이전에 출력한 시간  
 	int differentTime = 0;
-	int elapedTime = 0;
+	ULONGLONG elapedTime = 0;
 	//프로그램이 동작한 횟수 
 	newTime = GetTickCount64();
 	prevTime = GetTickCount64();
@@ -146,7 +130,8 @@ int main()
 
 	ScreenInit();
 
-	srand(time(NULL));
+	unsigned int seed = static_cast<unsigned int>(time(NULL));
+	srand(seed);
 
 	UpdateOldTime = OldTime = clock(); // 시간을 측정한다. 1초마다 갱신한다.
 
@@ -166,7 +151,7 @@ int main()
 
 		UpdateCurTime = CurTime = clock();
 
-		int GamePlayTimeSecond = (end - start);
+		int GamePlayTimeSecond = static_cast<int>(end - start);
 		int GamePlayTimeMin = GamePlayTimeSecond / 60;
 
 		// 분단위 종료 코드
